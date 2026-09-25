@@ -1,147 +1,147 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Institutional Escrow Portal — WOLF/RUN/24072026/400m</title>
+    <title>Institutional Escrow Portal / Институциональный эскроу-портал — WOLF/RUN/24072026/400m</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/tronweb/dist/TronWeb.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Institutional Escrow Panel (3-of-3 Multi-Sig Architecture)</h1>
+        <h1>Institutional Escrow Panel / Панель Эскроу (3-of-3 Multi-Sig)</h1>
 
         <!-- Часы Лондона и комплаенс -->
         <div class="card">
-            <h2>Комплаенс & Системное Время (London Time / UTC+0)</h2>
+            <h2>Compliance & System Time / Комплаенс и системное время (London Time / UTC+0)</h2>
             <div class="info-grid">
                 <div>
-                    <label>Текущее время Лондона (UK Time):</label>
+                    <label>Current London Time / Текущее время Лондона (UK Time):</label>
                     <div id="londonClock" class="time-display">--:--:-- GMT/BST</div>
                 </div>
                 <div>
-                    <label>Статус контракта:</label>
-                    <div id="pauseStatusDisplay" class="status-badge">Загрузка...</div>
+                    <label>Contract Status / Статус контракта:</label>
+                    <div id="pauseStatusDisplay" class="status-badge">Loading... / Загрузка...</div>
                 </div>
             </div>
             <div class="info-grid" style="margin-top: 10px;">
                 <div style="grid-column: span 2;">
-                    <label>Legal & AML Document Hash:</label>
-                    <div id="amlDocHashDisplay" class="hash-code">Подключите кошелек...</div>
+                    <label>Legal & AML Document Hash / Хэш документов Legal & AML:</label>
+                    <div id="amlDocHashDisplay" class="hash-code">Connect wallet... / Подключите кошелек...</div>
                 </div>
             </div>
         </div>
 
         <!-- Подключение кошелька -->
         <div class="card">
-            <h2>1. Подключение и Идентификация</h2>
+            <h2>1. Connection & Identification / Подключение и идентификация</h2>
             <div class="button-group">
-                <button id="btnConnectBrowser" class="btn primary">Подключить TronLink / Tangem</button>
-                <button id="btnConnectQR" class="btn secondary">QR-код приложения</button>
+                <button id="btnConnectBrowser" class="btn primary">Connect TronLink / Tangem / Подключить TronLink / Tangem</button>
+                <button id="btnConnectQR" class="btn secondary">App QR Code / QR-код приложения</button>
             </div>
-            <p id="walletAddress" class="status-text">Статус: Не подключен</p>
-            <p id="userRoleDisplay" class="role-badge">Роль: Выберите подпись или подключитесь</p>
+            <p id="walletAddress" class="status-text">Status: Not connected / Статус: Не подключен</p>
+            <p id="userRoleDisplay" class="role-badge">Role: Select signature or connect / Роль: Выберите подпись или подключитесь</p>
             <div id="qrModal" style="display:none; margin-top: 15px; text-align: center;">
                 <div id="qrcode" style="display: inline-block; padding: 10px; background: #fff;"></div>
             </div>
         </div>
 
-        <!-- Самостоятельная генерация подписей каждым участником -->
+        <!-- Генерация подписей -->
         <div class="card">
-            <h2>2. Генерация и Внесение Подписей (EIP-191)</h2>
-            <p class="subtitle">Каждый подписант генерирует подпись со своего кошелька. Время фиксируется по GMT/BST (Лондон).</p>
+            <h2>2. Signature Generation & Entry (EIP-191) / Генерация и внесение подписей (EIP-191)</h2>
+            <p class="subtitle">Each signer generates a signature from their wallet. Timestamp fixed by GMT/BST (London). / Каждый подписант генерирует подпись со своего кошелька. Время фиксируется по GMT/BST (Лондон).</p>
             
             <div class="sig-box">
-                <h3>Инвестор (Party A)</h3>
+                <h3>Investor / Инвестор (Party A)</h3>
                 <div class="button-group">
-                    <button id="btnSignInvestor" class="btn">1. Сгенерировать подпись Инвестора</button>
+                    <button id="btnSignInvestor" class="btn">1. Generate Investor Signature / Сгенерировать подпись Инвестора</button>
                 </div>
                 <div class="input-group">
                     <div class="input-row">
-                        <input type="text" id="timeA" placeholder="Время (London Epoch)" readonly>
-                        <input type="text" id="sigA" placeholder="Хэш подписи Инвестора" readonly>
+                        <input type="text" id="timeA" placeholder="Time / Время (London Epoch)" readonly>
+                        <input type="text" id="sigA" placeholder="Investor Signature Hash / Хэш подписи Инвестора" readonly>
                     </div>
                 </div>
             </div>
 
             <div class="sig-box">
-                <h3>Приемка (Party B)</h3>
+                <h3>Receiver / Приемка (Party B)</h3>
                 <div class="button-group">
-                    <button id="btnSignOperator" class="btn">2. Сгенерировать подпись Приемки</button>
+                    <button id="btnSignOperator" class="btn">2. Generate Receiver Signature / Сгенерировать подпись Приемки</button>
                 </div>
                 <div class="input-group">
                     <div class="input-row">
-                        <input type="text" id="timeB" placeholder="Время (London Epoch)" readonly>
-                        <input type="text" id="sigB" placeholder="Хэш подписи Приемки" readonly>
+                        <input type="text" id="timeB" placeholder="Time / Время (London Epoch)" readonly>
+                        <input type="text" id="sigB" placeholder="Receiver Signature Hash / Хэш подписи Приемки" readonly>
                     </div>
                 </div>
             </div>
 
             <div class="sig-box">
-                <h3>Оракул-Координатор</h3>
+                <h3>Oracle Coordinator / Оракул-Координатор</h3>
                 <div class="button-group">
-                    <button id="btnSignOracle" class="btn">3. Сгенерировать подпись Оракула</button>
+                    <button id="btnSignOracle" class="btn">3. Generate Oracle Signature / Сгенерировать подпись Оракула</button>
                 </div>
                 <div class="input-group">
                     <div class="input-row">
-                        <input type="text" id="timeOracle" placeholder="Время (London Epoch)" readonly>
-                        <input type="text" id="sigOracle" placeholder="Хэш подписи Оракула" readonly>
+                        <input type="text" id="timeOracle" placeholder="Time / Время (London Epoch)" readonly>
+                        <input type="text" id="sigOracle" placeholder="Oracle Signature Hash / Хэш подписи Оракула" readonly>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Панель Исполнения и управления смарт-контрактом -->
+        <!-- Панель Исполнения -->
         <div class="card coordinator-panel">
-            <h2>3. Панель Исполнения Смарт-Контракта</h2>
+            <h2>3. Smart Contract Execution Panel / Панель исполнения смарт-контракта</h2>
             <div class="button-group">
-                <button id="btnExecuteStage2" class="btn success">Исполнить Выплаты Stage 2</button>
-                <button id="btnTimeoutRefund" class="btn secondary">Аварийный Возврат (5 Дней)</button>
+                <button id="btnExecuteStage2" class="btn success">Execute Stage 2 Payouts / Исполнить выплаты Stage 2</button>
+                <button id="btnTimeoutRefund" class="btn secondary">Emergency Refund (5 Days) / Аварийный возврат (5 дней)</button>
             </div>
             <p id="txStatus" class="status-text"></p>
         </div>
 
-        <!-- Смена адресов / Кошельков получателей (с рефлексией в отчет) -->
+        <!-- Смена адресов -->
         <div class="card">
-            <h2>4. Управление Агентскими Кошельками (3-of-3 Multi-Sig)</h2>
+            <h2>4. Payee Wallets Management (3-of-3 Multi-Sig) / Управление агентскими кошельками (3-of-3 Multi-Sig)</h2>
             <div class="input-group">
-                <label>0. Инвестор (5.00% / 500 BPS):</label>
+                <label>0. Investor / Инвестор (5.00% / 500 BPS):</label>
                 <input type="text" id="payee0" placeholder="0x..." />
             </div>
             <div class="input-group">
-                <label>1. Оракул (3.50% / 350 BPS):</label>
+                <label>1. Oracle / Оракул (3.50% / 350 BPS):</label>
                 <input type="text" id="payee1" placeholder="0x..." />
             </div>
             <div class="input-group">
-                <label>2. Участник №1 (1.50% / 150 BPS):</label>
+                <label>2. Participant #1 / Участник №1 (1.50% / 150 BPS):</label>
                 <input type="text" id="payee2" placeholder="0x..." />
             </div>
             <div class="input-group">
-                <label>3. Участник №2 (1.00% / 100 BPS):</label>
+                <label>3. Participant #2 / Участник №2 (1.00% / 100 BPS):</label>
                 <input type="text" id="payee3" placeholder="0x..." />
             </div>
             <div class="button-group" style="margin-top: 15px;">
-                <button id="btnUpdateWallets" class="btn secondary">Обновить Кошельки Получателей</button>
+                <button id="btnUpdateWallets" class="btn secondary">Update Payee Wallets / Обновить кошельки получателей</button>
             </div>
         </div>
 
-        <!-- Аудиторский реестр действий и разгона средств (Index Mirror Report) -->
+        <!-- Аудиторский реестр -->
         <div class="card">
-            <h2>5. Аудиторский Реестр Событий и Выплат (Index Audit Trail)</h2>
-            <p class="subtitle">Зеркально отражает кто, когда (по Лондону) и сколько получил, а также смены настроек смарт-контракта.</p>
+            <h2>5. Audit Event & Payout Trail (Index Audit Trail) / Аудиторский реестр событий и выплат</h2>
+            <p class="subtitle">Mirrors who, when (London Time), and how much received, as well as contract configuration changes. / Зеркально отражает кто, когда (по Лондону) и сколько получил, а также смены настроек контракта.</p>
             <table>
                 <thead>
                     <tr>
-                        <th>№</th>
-                        <th>Действие / Получатель</th>
-                        <th>Сумма (USDT) / Детали</th>
-                        <th>Хэш Транзакции / Записи</th>
-                        <th>Время (London GMT/BST)</th>
+                        <th># / №</th>
+                        <th>Action / Recipient | Действие / Получатель</th>
+                        <th>Amount (USDT) / Details | Сумма (USDT) / Детали</th>
+                        <th>Tx Hash / Record | Хэш транзакции / Записи</th>
+                        <th>Time / Время (London GMT/BST)</th>
                     </tr>
                 </thead>
                 <tbody id="registryBody">
-                    <tr><td colspan="5" style="text-align:center;">Записи выплат и действий отсутствуют</td></tr>
+                    <tr><td colspan="5" style="text-align:center;">No payout or action records found / Записи выплат и действий отсутствуют</td></tr>
                 </tbody>
             </table>
         </div>
