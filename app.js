@@ -1,7 +1,7 @@
 let userAddress = null;
 let tronWebInstance = null;
 
-// !!! УКАЖИТЕ АДРЕС ВАШЕГО РАЗВЕРНУТОГО КОНТРАКТА СМАРТ-КОНТРАКТА !!!
+// !!! УКАЖИТЕ АДРЕС ВАШЕГО РАЗВЕРНУТОГО СМАРТ-КОНТРАКТА !!!
 const CONTRACT_ADDRESS = "0xYOUR_DEPLOYED_CONTRACT_ADDRESS_HERE"; 
 const CHAIN_ID = 728126428; // TRON Mainnet Chain ID
 
@@ -24,23 +24,23 @@ function updateLondonClock() {
         hour12: false
     };
     const londonTimeStr = new Intl.DateTimeFormat('en-GB', options).format(new Date());
-    clockElem.innerText = londonTimeStr + " (London Time)";
+    clockElem.innerText = londonTimeStr + " (London Time / Время Лондона)";
 }
 setInterval(updateLondonClock, 1000);
 updateLondonClock();
 
-// --- 2. ПОДКТЮЧЕНИЕ КОШЕЛЬКА ---
+// --- 2. ПОДКЛЮЧЕНИЕ КОШЕЛЬКА ---
 document.getElementById('btnConnectBrowser').addEventListener('click', async () => {
     if (window.tronWeb && window.tronWeb.ready) {
         tronWebInstance = window.tronWeb;
         userAddress = tronWebInstance.defaultAddress.base58;
-        walletAddressLabel.innerText = "Подключен кошелек: " + userAddress;
+        walletAddressLabel.innerText = "Connected Wallet / Подключен кошелек: " + userAddress;
         
         await loadContractComplianceData();
         await loadCurrentPayees();
         await loadPayoutAndActionRegistry();
     } else {
-        alert("Откройте dApp через TronLink или встроенный браузер Tangem Wallet!");
+        alert("Open dApp via TronLink or Tangem Wallet browser! / Откройте dApp через TronLink или встроенный браузер Tangem Wallet!");
     }
 });
 
@@ -62,7 +62,7 @@ async function loadContractComplianceData() {
 
         const isPaused = await contract.isPaused().call();
         const pauseElem = document.getElementById('pauseStatusDisplay');
-        pauseElem.innerText = isPaused ? "ЗАМОРОЖЕН" : "АКТИВЕН";
+        pauseElem.innerText = isPaused ? "FROZEN / ЗАМОРОЖЕН" : "ACTIVE / АКТИВЕН";
         pauseElem.style.color = isPaused ? "#ef4444" : "#10b981";
 
         // Определение роли текущего кошелька
@@ -72,16 +72,16 @@ async function loadContractComplianceData() {
 
         const currentHex = tronWebInstance.address.toHex(userAddress).toLowerCase();
         if (currentHex === tronWebInstance.address.toHex(investor).toLowerCase()) {
-            userRoleDisplay.innerText = "Роль: Инвестор (Party A)";
+            userRoleDisplay.innerText = "Role / Роль: Investor / Инвестор (Party A)";
         } else if (currentHex === tronWebInstance.address.toHex(receiver).toLowerCase()) {
-            userRoleDisplay.innerText = "Роль: Приемка (Party B)";
+            userRoleDisplay.innerText = "Role / Роль: Receiver / Приемка (Party B)";
         } else if (currentHex === tronWebInstance.address.toHex(oracle).toLowerCase()) {
-            userRoleDisplay.innerText = "Роль: Оракул-Координатор";
+            userRoleDisplay.innerText = "Role / Роль: Oracle Coordinator / Оракул-Координатор";
         } else {
-            userRoleDisplay.innerText = "Роль: Внешний наблюдатель / Участник";
+            userRoleDisplay.innerText = "Role / Роль: External Observer / Внешний наблюдатель";
         }
     } catch (err) {
-        console.error("Ошибка считывания комплаенса:", err);
+        console.error("Compliance data read error / Ошибка считывания комплаенса:", err);
     }
 }
 
@@ -97,14 +97,14 @@ async function loadCurrentPayees() {
             }
         }
     } catch (err) {
-        console.error("Ошибка загрузки адресов получателей:", err);
+        console.error("Payee addresses load error / Ошибка загрузки адресов получателей:", err);
     }
 }
 
 // --- 4. НЕЗАВИСИМАЯ ГЕНЕРАЦИЯ ПОДПИСЕЙ ПО ЛОНДОНСКОМУ ВРЕМЕНИ ---
 async function generateSignature(roleTag) {
     if (!userAddress || !tronWebInstance) {
-        alert("Сначала подключите кошелек!");
+        alert("Connect wallet first! / Сначала подключите кошелек!");
         return null;
     }
     try {
@@ -125,7 +125,7 @@ async function generateSignature(roleTag) {
         const signature = await tronWebInstance.trx.sign(messageHash);
         return { timestamp, signature };
     } catch (err) {
-        alert("Ошибка создания подписи: " + err.message);
+        alert("Signature creation error / Ошибка создания подписи: " + err.message);
         return null;
     }
 }
@@ -155,7 +155,7 @@ document.getElementById('btnSignOracle').addEventListener('click', async () => {
     }
 });
 
-// --- 5. ИСПОЛНЕНИЕ ВЫПЛАТ СТАЦИИ 2 СМАРТ-КОНТРАКТОМ ---
+// --- 5. ИСПОЛНЕНИЕ ВЫПЛАТ СТАДИИ 2 СМАРТ-КОНТРАКТОМ ---
 document.getElementById('btnExecuteStage2').addEventListener('click', async () => {
     const timeA = document.getElementById('timeA').value;
     const sigA = document.getElementById('sigA').value;
@@ -165,11 +165,11 @@ document.getElementById('btnExecuteStage2').addEventListener('click', async () =
     const sigOracle = document.getElementById('sigOracle').value;
 
     if (!timeA || !sigA || !timeB || !sigB || !timeOracle || !sigOracle) {
-        return alert("Все 3 участника должны самостоятельно сгенерировать подписи!");
+        return alert("All 3 signers must generate signatures! / Все 3 участника должны сгенерировать подписи!");
     }
 
     try {
-        txStatusLabel.innerText = "Отправка 3-of-3 подписей в контракт...";
+        txStatusLabel.innerText = "Submitting 3-of-3 signatures to contract... / Отправка 3-of-3 подписей в контракт...";
         const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
         
         const tx = await contract.executeStage2AndDistribute(
@@ -177,10 +177,10 @@ document.getElementById('btnExecuteStage2').addEventListener('click', async () =
             sigA, sigB, sigOracle
         ).send({ feeLimit: 300000000 });
 
-        txStatusLabel.innerText = "Разгон средств выплат успешно завершен! Tx: " + tx;
+        txStatusLabel.innerText = "Payout execution completed successfully! / Разгон средств выплат успешно завершен! Tx: " + tx;
         await loadPayoutAndActionRegistry();
     } catch (err) {
-        txStatusLabel.innerText = "Ошибка исполнения Stage 2: " + err.message;
+        txStatusLabel.innerText = "Stage 2 execution error / Ошибка исполнения Stage 2: " + err.message;
     }
 });
 
@@ -192,7 +192,7 @@ document.getElementById('btnUpdateWallets').addEventListener('click', async () =
     const w3 = document.getElementById('payee3').value;
 
     if (!w0 || !w1 || !w2 || !w3) {
-        return alert("Заполните все 4 адреса получателей!");
+        return alert("Fill in all 4 payee addresses! / Заполните все 4 адреса получателей!");
     }
 
     const timeA = document.getElementById('timeA').value || Math.floor(Date.now() / 1000);
@@ -201,11 +201,11 @@ document.getElementById('btnUpdateWallets').addEventListener('click', async () =
     const sigOracle = document.getElementById('sigOracle').value;
 
     if (!sigA || !sigB || !sigOracle) {
-        return alert("Для смены адресов необходимы подписи всех 3 сторон!");
+        return alert("Changing addresses requires signatures from all 3 parties! / Для смены адресов необходимы подписи всех 3 сторон!");
     }
 
     try {
-        txStatusLabel.innerText = "Смена адресов получателей в контракте...";
+        txStatusLabel.innerText = "Updating payee addresses in contract... / Смена адресов получателей в контракте...";
         const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
         
         const wallets = [w0, w1, w2, w3];
@@ -215,23 +215,23 @@ document.getElementById('btnUpdateWallets').addEventListener('click', async () =
             wallets, bps, timeA, timeA, timeA, sigA, sigB, sigOracle
         ).send({ feeLimit: 150000000 });
 
-        txStatusLabel.innerText = "Адреса получателей обновлены! Tx: " + tx;
+        txStatusLabel.innerText = "Payee addresses updated! / Адреса получателей обновлены! Tx: " + tx;
         await loadPayoutAndActionRegistry();
     } catch (err) {
-        txStatusLabel.innerText = "Ошибка смены адресов: " + err.message;
+        txStatusLabel.innerText = "Address update error / Ошибка смены адресов: " + err.message;
     }
 });
 
 // Аварийный возврат (5 дней)
 document.getElementById('btnTimeoutRefund').addEventListener('click', async () => {
     try {
-        txStatusLabel.innerText = "Инициирование аварийного возврата...";
+        txStatusLabel.innerText = "Initiating emergency refund... / Инициирование аварийного возврата...";
         const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
         const tx = await contract.emergencyRefundAfterTimeout().send({ feeLimit: 100000000 });
-        txStatusLabel.innerText = "Возврат выполнен! Tx: " + tx;
+        txStatusLabel.innerText = "Refund executed! / Возврат выполнен! Tx: " + tx;
         await loadPayoutAndActionRegistry();
     } catch (err) {
-        txStatusLabel.innerText = "Ошибка возврата: " + err.message;
+        txStatusLabel.innerText = "Refund error / Ошибка возврата: " + err.message;
     }
 });
 
@@ -276,9 +276,9 @@ async function loadPayoutAndActionRegistry() {
         }
 
         if (!hasRecords) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Записи действий и выплат пока отсутствуют</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No payout or action records found / Записи выплат и действий отсутствуют</td></tr>';
         }
     } catch (err) { 
-        console.error("Ошибка загрузки отчета выплат:", err); 
+        console.error("Audit report load error / Ошибка загрузки отчета выплат:", err); 
     }
 }
