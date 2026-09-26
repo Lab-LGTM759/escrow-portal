@@ -4,19 +4,31 @@ let tronWebInstance = null;
 const CONTRACT_ADDRESS = "TMzLAfhixpozQvuqVBqhGWccLm1qQYJ4dQ"; 
 const CHAIN_ID = 728126428;
 
+// Автоматический запуск при загрузке DOM
 document.addEventListener('DOMContentLoaded', () => {
     updateLondonClock();
     setInterval(updateLondonClock, 1000);
     initUIEvents();
 });
 
+// 1. Отображение времени Лондона (GMT/BST)
 function updateLondonClock() {
     const clockElem = document.getElementById('londonClock');
     if (!clockElem) return;
-    const options = { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    const options = { 
+        timeZone: 'Europe/London', 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit', 
+        hour12: false 
+    };
     clockElem.innerText = new Intl.DateTimeFormat('en-GB', options).format(new Date()) + " (London GMT/BST)";
 }
 
+// 2. Инициализация обработчиков событий
 function initUIEvents() {
     // Подключение кошелька
     const btnConnect = document.getElementById('btnConnectBrowser');
@@ -75,27 +87,41 @@ function initUIEvents() {
     if (btnUpdate) btnUpdate.addEventListener('click', updatePayeeWallets);
 }
 
+// 3. Логика подключения кошелька TronLink / Tangem
 async function connectWallet() {
     try {
         const provider = window.tron || window.tronLink;
-        if (provider) {
+        
+        if (!provider) {
+            alert("Кошелек TronLink не найден! Убедитесь, что расширение установлено и включено.");
+            return;
+        }
+
+        try {
             await provider.request({ method: 'tron_requestAccounts' });
+        } catch (reqErr) {
+            console.warn("Запрос авторизации отправлен в TronLink:", reqErr);
         }
 
-        if (!window.tronWeb || !window.tronWeb.ready) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        // Ожидание инициализации объекта TronWeb
+        let attempts = 0;
+        while ((!window.tronWeb || !window.tronWeb.ready || !window.tronWeb.defaultAddress.base58) && attempts < 10) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            attempts++;
         }
 
-        if (window.tronWeb && window.tronWeb.ready) {
+        if (window.tronWeb && window.tronWeb.ready && window.tronWeb.defaultAddress.base58) {
             tronWebInstance = window.tronWeb;
             userAddress = tronWebInstance.defaultAddress.base58;
             
             const walletLabel = document.getElementById('walletAddress');
-            if (walletLabel) walletLabel.innerText = "Подключен кошелек: " + userAddress;
+            if (walletLabel) {
+                walletLabel.innerText = "Подключен кошелек: " + userAddress;
+            }
             
             await loadContractDataSafely();
         } else {
-            alert("TronWeb не готов. Убедитесь, что кошелек TronLink разблокирован и выбрана сеть Shasta.");
+            alert("Кошелек TronLink заблокирован или не ответил. Нажмите на иконку TronLink в браузере, введите пароль и повторите попытку.");
         }
     } catch (err) {
         console.error("Ошибка подключения:", err);
@@ -103,16 +129,17 @@ async function connectWallet() {
     }
 }
 
+// 4. Безопасное считывание состояния смарт-контракта
 async function loadContractDataSafely() {
     try {
         const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
         
-        // Чтение хэша документов
+        // Хэш документов
         const legalHash = await contract.amlAndLegalDocHash().call();
         const amlElem = document.getElementById('amlDocHashDisplay');
         if (amlElem) amlElem.innerText = legalHash;
 
-        // Чтение статуса заморозки
+        // Статус паузы / заморозки
         const isPaused = await contract.isPaused().call();
         const pauseElem = document.getElementById('pauseStatusDisplay');
         if (pauseElem) {
@@ -128,6 +155,7 @@ async function loadContractDataSafely() {
     }
 }
 
+// 5. Загрузка данных депозита и баланса USDT
 async function loadDepositAndTimerData() {
     try {
         const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
@@ -147,6 +175,7 @@ async function loadDepositAndTimerData() {
     }
 }
 
+// 6. Загрузка адресов получателей
 async function loadCurrentPayees() {
     try {
         const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
@@ -157,9 +186,12 @@ async function loadCurrentPayees() {
                 inputElem.value = tronWebInstance.address.fromHex(payee.wallet);
             }
         }
-    } catch (err) { console.error("Ошибка адресов:", err); }
+    } catch (err) { 
+        console.error("Ошибка адресов:", err); 
+    }
 }
 
+// 7. Аудиторский реестр транзакций из Shasta TronGrid API
 async function loadFullAuditTrailWithFailures() {
     const tbody = document.getElementById("registryBody");
     if (!tbody || !tronWebInstance) return;
@@ -186,10 +218,12 @@ async function loadFullAuditTrailWithFailures() {
                 </tr>`;
             });
         }
-    } catch (err) { console.error("Ошибка аудита:", err); }
+    } catch (err) { 
+        console.error("Ошибка аудита:", err); 
+    }
 }
 
-// Подписание сообщений (EIP-191)
+// 8. Генерация криптографической подписи (EIP-191)
 async function generateSignature(timeInputId, sigInputId) {
     if (!tronWebInstance || !userAddress) {
         alert("Сначала подключите кошелек!");
@@ -208,7 +242,7 @@ async function generateSignature(timeInputId, sigInputId) {
     }
 }
 
-// Выполнение выплат Stage 2
+// 9. Исполнение Stage 2 выплат
 async function executeStage2Payouts() {
     if (!tronWebInstance) return alert("Подключите кошелек!");
     const tA = document.getElementById('timeA').value;
@@ -232,7 +266,7 @@ async function executeStage2Payouts() {
     }
 }
 
-// Аварийный возврат
+// 10. Аварийный возврат средств
 async function executeEmergencyRefund() {
     if (!tronWebInstance) return alert("Подключите кошелек!");
     try {
@@ -245,7 +279,7 @@ async function executeEmergencyRefund() {
     }
 }
 
-// Обновление кошельков участников
+// 11. Обновление адресов получателей
 async function updatePayeeWallets() {
     if (!tronWebInstance) return alert("Подключите кошелек!");
     try {
