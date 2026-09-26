@@ -3,7 +3,6 @@ let tronWebInstance = null;
 
 const CONTRACT_ADDRESS = "TMzLAfhixpozQvuqVBqhGWccLm1qQYJ4dQ"; 
 const CHAIN_ID = 728126428;
-let emergencyDeadlineTimestamp = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
     updateLondonClock();
@@ -19,11 +18,11 @@ function updateLondonClock() {
 }
 
 function initUIEvents() {
+    // Подключение кошелька
     const btnConnect = document.getElementById('btnConnectBrowser');
-    if (btnConnect) {
-        btnConnect.addEventListener('click', connectWallet);
-    }
+    if (btnConnect) btnConnect.addEventListener('click', connectWallet);
 
+    // Модальное окно QR-кода
     const qrModal = document.getElementById('qrModal');
     const btnConnectQR = document.getElementById('btnConnectQR');
     const btnCloseQR = document.getElementById('btnCloseQR');
@@ -47,16 +46,33 @@ function initUIEvents() {
     }
 
     if (btnCloseQR && qrModal) {
-        btnCloseQR.addEventListener('click', () => {
-            qrModal.style.display = "none";
-        });
+        btnCloseQR.addEventListener('click', () => { qrModal.style.display = "none"; });
     }
 
     window.addEventListener('click', (event) => {
-        if (qrModal && event.target === qrModal) {
-            qrModal.style.display = "none";
-        }
+        if (qrModal && event.target === qrModal) qrModal.style.display = "none";
     });
+
+    // Кнопки генерации подписей (EIP-191)
+    const btnSignInv = document.getElementById('btnSignInvestor');
+    if (btnSignInv) btnSignInv.addEventListener('click', () => generateSignature('timeA', 'sigA'));
+
+    const btnSignOp = document.getElementById('btnSignOperator');
+    if (btnSignOp) btnSignOp.addEventListener('click', () => generateSignature('timeB', 'sigB'));
+
+    const btnSignOra = document.getElementById('btnSignOracle');
+    if (btnSignOra) btnSignOra.addEventListener('click', () => generateSignature('timeOracle', 'sigOracle'));
+
+    // Исполнение смарт-контракта
+    const btnExecute = document.getElementById('btnExecuteStage2');
+    if (btnExecute) btnExecute.addEventListener('click', executeStage2Payouts);
+
+    const btnRefund = document.getElementById('btnTimeoutRefund');
+    if (btnRefund) btnRefund.addEventListener('click', executeEmergencyRefund);
+
+    // Обновление кошельков
+    const btnUpdate = document.getElementById('btnUpdateWallets');
+    if (btnUpdate) btnUpdate.addEventListener('click', updatePayeeWallets);
 }
 
 async function connectWallet() {
@@ -91,10 +107,12 @@ async function loadContractDataSafely() {
     try {
         const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
         
+        // Чтение хэша документов
         const legalHash = await contract.amlAndLegalDocHash().call();
         const amlElem = document.getElementById('amlDocHashDisplay');
         if (amlElem) amlElem.innerText = legalHash;
 
+        // Чтение статуса заморозки
         const isPaused = await contract.isPaused().call();
         const pauseElem = document.getElementById('pauseStatusDisplay');
         if (pauseElem) {
@@ -168,7 +186,80 @@ async function loadFullAuditTrailWithFailures() {
                 </tr>`;
             });
         }
+    } catch (err) { console.error("Ошибка аудита:", err); }
+}
+
+// Подписание сообщений (EIP-191)
+async function generateSignature(timeInputId, sigInputId) {
+    if (!tronWebInstance || !userAddress) {
+        alert("Сначала подключите кошелек!");
+        return;
+    }
+    try {
+        const timestamp = Math.floor(Date.now() / 1000);
+        const message = `London Epoch Time: ${timestamp}`;
+        const signature = await tronWebInstance.trx.signMessageV2(message);
+
+        document.getElementById(timeInputId).value = timestamp;
+        document.getElementById(sigInputId).value = signature;
     } catch (err) {
-        console.error("Ошибка аудита:", err);
+        console.error("Ошибка подписи:", err);
+        alert("Ошибка при создании подписи: " + (err.message || err));
+    }
+}
+
+// Выполнение выплат Stage 2
+async function executeStage2Payouts() {
+    if (!tronWebInstance) return alert("Подключите кошелек!");
+    const tA = document.getElementById('timeA').value;
+    const sA = document.getElementById('sigA').value;
+    const tB = document.getElementById('timeB').value;
+    const sB = document.getElementById('sigB').value;
+    const tO = document.getElementById('timeOracle').value;
+    const sO = document.getElementById('sigOracle').value;
+
+    if (!sA || !sB || !sO) {
+        return alert("Необходимы подписи всех 3 сторон!");
+    }
+
+    try {
+        const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
+        const tx = await contract.executeStage2(tA, sA, tB, sB, tO, sO).send();
+        document.getElementById('txStatus').innerText = "Транзакция отправлена: " + tx;
+    } catch (err) {
+        console.error("Ошибка исполнения:", err);
+        alert("Ошибка выполнения: " + (err.message || err));
+    }
+}
+
+// Аварийный возврат
+async function executeEmergencyRefund() {
+    if (!tronWebInstance) return alert("Подключите кошелек!");
+    try {
+        const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
+        const tx = await contract.emergencyTimeoutRefund().send();
+        document.getElementById('txStatus').innerText = "Аварийный возврат запущен: " + tx;
+    } catch (err) {
+        console.error("Ошибка возврата:", err);
+        alert("Ошибка аварийного возврата: " + (err.message || err));
+    }
+}
+
+// Обновление кошельков участников
+async function updatePayeeWallets() {
+    if (!tronWebInstance) return alert("Подключите кошелек!");
+    try {
+        const payees = [];
+        for (let i = 0; i < 4; i++) {
+            const val = document.getElementById(`payee${i}`).value;
+            if (!val) return alert(`Заполните адрес кошелька #${i}`);
+            payees.push(val);
+        }
+        const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
+        const tx = await contract.updatePayeeWallets(payees).send();
+        document.getElementById('txStatus').innerText = "Кошельки обновлены: " + tx;
+    } catch (err) {
+        console.error("Ошибка обновления кошельков:", err);
+        alert("Ошибка обновления: " + (err.message || err));
     }
 }
