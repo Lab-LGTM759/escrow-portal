@@ -36,6 +36,38 @@ document.getElementById('btnConnectBrowser').addEventListener('click', async () 
     }
 });
 
+// Открытие и обработка QR-кода
+const qrModal = document.getElementById('qrModal');
+const btnConnectQR = document.getElementById('btnConnectQR');
+const btnCloseQR = document.getElementById('btnCloseQR');
+
+btnConnectQR.addEventListener('click', () => {
+    const qrContainer = document.getElementById('qrcode');
+    qrContainer.innerHTML = ""; // Очистка предыдущего кода
+    
+    // Генерация нового QR-кода текущего URL
+    new QRCode(qrContainer, {
+        text: window.location.href,
+        width: 200,
+        height: 200,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    
+    qrModal.style.display = "flex";
+});
+
+btnCloseQR.addEventListener('click', () => {
+    qrModal.style.display = "none";
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === qrModal) {
+        qrModal.style.display = "none";
+    }
+});
+
 // Загрузка состояния и депозита
 async function loadContractComplianceData() {
     try {
