@@ -1,8 +1,8 @@
 let userAddress = null;
 let tronWebInstance = null;
 
-// Укажите адрес развернутого контракта
-const CONTRACT_ADDRESS = "0xYOUR_DEPLOYED_CONTRACT_ADDRESS_HERE"; 
+// Укажите адрес развернутого контракта в сети Shasta
+const CONTRACT_ADDRESS = "TMzLAfhixpozQvuqVBqhGWccLm1qQYJ4dQ"; 
 const CHAIN_ID = 728126428;
 
 let emergencyDeadlineTimestamp = 0;
@@ -248,7 +248,7 @@ async function loadFullAuditTrailWithFailures() {
 
     try {
         const base58Contract = tronWebInstance.address.fromHex(CONTRACT_ADDRESS);
-        const response = await fetch(`https://apilist.tronscan.org/api/transaction?sort=-timestamp&limit=25&contract=${base58Contract}`);
+        const response = await fetch(`https://apilist.shasta.trongrid.io/api/transaction?sort=-timestamp&limit=25&contract=${base58Contract}`);
         const data = await response.json();
 
         if (data && data.data && data.data.length > 0) {
@@ -268,7 +268,7 @@ async function loadFullAuditTrailWithFailures() {
                     <td>${idx + 1}</td>
                     <td><strong>${tx.methodName || 'Вызов контракта'}</strong></td>
                     <td>${statusHtml}</td>
-                    <td class="hash-code"><a href="https://tronscan.org/#/transaction/${tx.hash}" target="_blank" style="color:#60a5fa;">${tx.hash.substring(0, 12)}...</a></td>
+                    <td class="hash-code"><a href="https://shasta.tronscan.org/#/transaction/${tx.hash}" target="_blank" style="color:#60a5fa;">${tx.hash.substring(0, 12)}...</a></td>
                     <td>${londonTime} (London)</td>
                 </tr>`;
             });
