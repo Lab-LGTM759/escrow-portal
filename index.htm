@@ -67,8 +67,15 @@
             </div>
             <p id="walletAddress" class="status-text">Статус: Не подключен</p>
             <p id="userRoleDisplay" class="role-badge">Роль: Подключите кошелек</p>
-            <div id="qrModal" style="display:none; margin-top: 15px; text-align: center;">
-                <div id="qrcode" style="display: inline-block; padding: 10px; background: #fff;"></div>
+            
+            <!-- Модальное окно QR-кода -->
+            <div id="qrModal" class="modal">
+                <div class="modal-content">
+                    <span id="btnCloseQR" class="close-btn">&times;</span>
+                    <h3 style="color: #0f172a; margin-bottom: 12px; font-size: 16px;">Scan with Wallet App / Отсканируйте кошельком</h3>
+                    <div id="qrcode"></div>
+                    <p style="color: #64748b; font-size: 11px; margin-top: 12px;">Откройте встроенный dApp-браузер Tangem или TronLink и отсканируйте этот код.</p>
+                </div>
             </div>
         </div>
 
