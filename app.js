@@ -1,7 +1,7 @@
 let userAddress = null;
 let tronWebInstance = null;
 
-// Укажите адрес развернутого контракта в сети Shasta
+// Адрес развернутого контракта в сети Shasta
 const CONTRACT_ADDRESS = "TMzLAfhixpozQvuqVBqhGWccLm1qQYJ4dQ"; 
 const CHAIN_ID = 728126428;
 
@@ -20,19 +20,28 @@ function updateLondonClock() {
 }
 setInterval(updateLondonClock, 1000);
 
-// Подключение кошелька
+// Подключение кошелька с принудительным вызовом TronLink
 document.getElementById('btnConnectBrowser').addEventListener('click', async () => {
-    if (window.tronWeb && window.tronWeb.ready) {
-        tronWebInstance = window.tronWeb;
-        userAddress = tronWebInstance.defaultAddress.base58;
-        walletAddressLabel.innerText = "Подключен кошелек: " + userAddress;
-        
-        await loadContractComplianceData();
-        await loadDepositAndTimerData();
-        await loadCurrentPayees();
-        await loadFullAuditTrailWithFailures();
-    } else {
-        alert("Откройте dApp через TronLink или встроенный браузер Tangem Wallet!");
+    try {
+        if (window.tronLink) {
+            await window.tronLink.request({ method: 'tron_requestAccounts' });
+        }
+
+        if (window.tronWeb && window.tronWeb.ready) {
+            tronWebInstance = window.tronWeb;
+            userAddress = tronWebInstance.defaultAddress.base58;
+            walletAddressLabel.innerText = "Подключен кошелек: " + userAddress;
+            
+            await loadContractComplianceData();
+            await loadDepositAndTimerData();
+            await loadCurrentPayees();
+            await loadFullAuditTrailWithFailures();
+        } else {
+            alert("TronWeb не готов. Убедитесь, что кошелек разблокирован и выбрана сеть Shasta.");
+        }
+    } catch (err) {
+        console.error("Ошибка подключения:", err);
+        alert("Не удалось подключить кошелек: " + (err.message || err));
     }
 });
 
@@ -43,9 +52,8 @@ const btnCloseQR = document.getElementById('btnCloseQR');
 
 btnConnectQR.addEventListener('click', () => {
     const qrContainer = document.getElementById('qrcode');
-    qrContainer.innerHTML = ""; // Очистка предыдущего кода
+    qrContainer.innerHTML = ""; 
     
-    // Генерация нового QR-кода текущего URL
     new QRCode(qrContainer, {
         text: window.location.href,
         width: 200,
