@@ -20,8 +20,9 @@ function updateLondonClock() {
 }
 setInterval(updateLondonClock, 1000);
 
-// Подключение кошелька с принудительным вызовом TronLink
+// Подключение кошелька с отладкой
 document.getElementById('btnConnectBrowser').addEventListener('click', async () => {
+    alert("Кнопка нажата! Проверяем TronLink..."); // Проверяем, доходит ли клик
     try {
         if (window.tronLink) {
             await window.tronLink.request({ method: 'tron_requestAccounts' });
@@ -37,7 +38,7 @@ document.getElementById('btnConnectBrowser').addEventListener('click', async () 
             await loadCurrentPayees();
             await loadFullAuditTrailWithFailures();
         } else {
-            alert("TronWeb не готов. Убедитесь, что кошелек разблокирован и выбрана сеть Shasta.");
+            alert("TronWeb не готов. window.tronWeb: " + (window.tronWeb ? "есть" : "нет"));
         }
     } catch (err) {
         console.error("Ошибка подключения:", err);
@@ -227,7 +228,7 @@ document.getElementById('btnUpdateWallets').addEventListener('click', async () =
         const contract = await tronWebInstance.contract().at(CONTRACT_ADDRESS);
         const wallets = [
             document.getElementById('payee0').value, document.getElementById('payee1').value,
-            document.getElementById('payee2').value, document.getElementById('payee3').value
+            document.getElementById('payee2').value, document.getElementById('payee3'].value
         ];
         const timeA = document.getElementById('timeA').value || Math.floor(Date.now() / 1000);
         const tx = await contract.updateConfigWithTripleSig(
